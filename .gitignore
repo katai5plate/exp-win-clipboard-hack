@@ -59,3 +59,9 @@ typings/
 
 # next.js build output
 .next
+
+# HSP3
+hsptmp
+obj
+packfile
+start.ax

@@ -1,22 +1,22 @@
-// å‚è€ƒ: http://lldev.jp/hsp/module/clipboard_text.html
+// Ql: http://lldev.jp/hsp/module/clipboard_text.html
 
 #include "user32.as"
 #include "kernel32.as"
 
 #module
   #const NULL 0
-  #const FAILED_OPEN_CLIPBOARD 0 // OpenClipboard API å¤±æ•—
-  #const FAILED_EMPTY_CLIPBOARD 0 // EmptyClipboard API å¤±æ•—
-  #const FAILED_COUNT_CLIPBOARD_FORMATS 0 // CountClipboardFormats API å¤±æ•—
-  #const FAILED_ENUM_CLIPBOARD_FORMATS 0 // EnumClipboardFormats API å¤±æ•—
+  #const FAILED_OPEN_CLIPBOARD 0 // OpenClipboard API ¸”s
+  #const FAILED_EMPTY_CLIPBOARD 0 // EmptyClipboard API ¸”s
+  #const FAILED_COUNT_CLIPBOARD_FORMATS 0 // CountClipboardFormats API ¸”s
+  #const FAILED_ENUM_CLIPBOARD_FORMATS 0 // EnumClipboardFormats API ¸”s
   #const TRUE 1
   #const FALSE 0
-  #const CODE_DONE 0 // æˆåŠŸã‚³ãƒ¼ãƒ‰
-  #const CODE_FAILED 1 // å¤±æ•—ã‚³ãƒ¼ãƒ‰
-  #const GHND 66 // ã‚°ãƒ­ãƒ¼ãƒãƒ«ãƒ¡ãƒ¢ãƒªç¢ºä¿æ–¹æ³•
+  #const CODE_DONE 0 // ¬Œ÷ƒR[ƒh
+  #const CODE_FAILED 1 // ¸”sƒR[ƒh
+  #const GHND 66 // ƒOƒ[ƒoƒ‹ƒƒ‚ƒŠŠm•Û•û–@
 
   #deffunc _TryOpenClipboard
-    // 1ç§’é–“ãƒªãƒˆãƒ©ã‚¤ã—ç¶šã‘ã‚‹
+    // 1•bŠÔƒŠƒgƒ‰ƒC‚µ‘±‚¯‚é
     repeat 100
       OpenClipboard NULL
       _toc_result = stat
@@ -25,10 +25,10 @@
     loop
     return _toc_result
 
-  // ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã«ãƒ†ã‚­ã‚¹ãƒˆã‚’ã‚³ãƒ”ãƒ¼
+  // ƒNƒŠƒbƒvƒ{[ƒh‚ÉƒeƒLƒXƒg‚ğƒRƒs[
   #deffunc setCB str p_text, int p_format
     targetText = p_text
-    // ã‚°ãƒ­ãƒ¼ãƒãƒ«ãƒ¡ãƒ¢ãƒªç¢ºä¿
+    // ƒOƒ[ƒoƒ‹ƒƒ‚ƒŠŠm•Û
     targetTextLength = strlen(targetText)
     if targetTextLength <= 0 {
       return CODE_FAILED
@@ -38,41 +38,41 @@
       return CODE_FAILED
     }
     globalMemoryHandler = stat
-    // ã‚³ãƒ”ãƒ¼å…ƒã®ãƒã‚¤ãƒ³ã‚¿å–å¾—
+    // ƒRƒs[Œ³‚Ìƒ|ƒCƒ“ƒ^æ“¾
     targetTextPointer = varptr(targetText)
-    // ã‚°ãƒ­ãƒ¼ãƒãƒ«ãƒ¡ãƒ¢ãƒªæ–½éŒ ã€ãƒã‚¤ãƒ³ã‚¿å–å¾—
+    // ƒOƒ[ƒoƒ‹ƒƒ‚ƒŠ{ùAƒ|ƒCƒ“ƒ^æ“¾
     GlobalLock globalMemoryHandler
     if stat = NULL {
-      // ã‚°ãƒ­ãƒ¼ãƒãƒ«ãƒ¡ãƒ¢ãƒªé–‹æ”¾
+      // ƒOƒ[ƒoƒ‹ƒƒ‚ƒŠŠJ•ú
       GlobalFree globalMemoryHandler
       return CODE_FAILED
     }
     globalMemoryPointer = stat
-    // ã‚³ãƒ”ãƒ¼ã—ãŸã„ãƒ†ã‚­ã‚¹ãƒˆã‚’ã‚°ãƒ­ãƒ¼ãƒãƒ«ãƒ¡ãƒ¢ãƒªã«ã‚³ãƒ”ãƒ¼
+    // ƒRƒs[‚µ‚½‚¢ƒeƒLƒXƒg‚ğƒOƒ[ƒoƒ‹ƒƒ‚ƒŠ‚ÉƒRƒs[
     lstrcpy globalMemoryPointer, targetTextPointer
     if stat = NULL {
-      // ã‚°ãƒ­ãƒ¼ãƒãƒ«ãƒ¡ãƒ¢ãƒªè§£éŒ 
+      // ƒOƒ[ƒoƒ‹ƒƒ‚ƒŠ‰ğù
       GlobalUnlock globalMemoryHandler
       GlobalFree globalMemoryHandler
       return CODE_FAILED
     }
-    // ã‚°ãƒ­ãƒ¼ãƒãƒ«ãƒ¡ãƒ¢ãƒªè§£éŒ 
+    // ƒOƒ[ƒoƒ‹ƒƒ‚ƒŠ‰ğù
     GlobalUnlock globalMemoryHandler
 
-    // ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã‚’ã‚ªãƒ¼ãƒ—ãƒ³
+    // ƒNƒŠƒbƒvƒ{[ƒh‚ğƒI[ƒvƒ“
     _TryOpenClipboard
     if stat = FAILED_OPEN_CLIPBOARD {
       GlobalFree globalMemoryHandler
       return CODE_FAILED
     }
-    // ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã‚’æŒæ¡
+    // ƒNƒŠƒbƒvƒ{[ƒh‚ğ¶ˆ¬
     EmptyClipboard
     if stat = FAILED_EMPTY_CLIPBOARD {
       GlobalFree globalMemoryHandler
       CloseClipboard
       return CODE_FAILED
     }
-    // ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã«ã‚³ãƒ”ãƒ¼
+    // ƒNƒŠƒbƒvƒ{[ƒh‚ÉƒRƒs[
     SetClipboardData p_format, globalMemoryHandler
     if stat = NULL {
       GlobalFree globalMemoryHandler
@@ -80,27 +80,27 @@
       return CODE_FAILED
     }
     
-    // NOTE: SetClipboardData ãŒæˆåŠŸã—ãŸå ´åˆã¯ GlobalFree ç¦æ­¢
+    // NOTE: SetClipboardData ‚ª¬Œ÷‚µ‚½ê‡‚Í GlobalFree ‹Ö~
     
-    // ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã‚’ã‚¯ãƒ­ãƒ¼ã‚º
+    // ƒNƒŠƒbƒvƒ{[ƒh‚ğƒNƒ[ƒY
     CloseClipboard
-    return CODE_DONE // å®Œäº†ã‚³ãƒ¼ãƒ‰
+    return CODE_DONE // Š®—¹ƒR[ƒh
 
-  // ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰å†…ã®ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—
+  // ƒNƒŠƒbƒvƒ{[ƒh“à‚ÌƒeƒLƒXƒg‚ğæ“¾
   #defcfunc getCB array p_formats, int p_distFormat
-    // ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã‚’ã‚ªãƒ¼ãƒ—ãƒ³
+    // ƒNƒŠƒbƒvƒ{[ƒh‚ğƒI[ƒvƒ“
     _TryOpenClipboard
     if stat = FAILED_OPEN_CLIPBOARD {
       return
     }
-    // ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰å†…ãƒ‡ãƒ¼ã‚¿å½¢å¼ã®æ•°ã‚’å–å¾—
+    // ƒNƒŠƒbƒvƒ{[ƒh“àƒf[ƒ^Œ`®‚Ì”‚ğæ“¾
     CountClipboardFormats
     if stat = FAILED_COUNT_CLIPBOARD_FORMATS {
       CloseClipboard
       return
     }
     formatsNum = stat
-    // ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã«æŒ‡å®šã•ã‚ŒãŸãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆãŒã‚ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
+    // ƒNƒŠƒbƒvƒ{[ƒh‚Éw’è‚³‚ê‚½ƒtƒH[ƒ}ƒbƒg‚ª‚ ‚é‚©ƒ`ƒFƒbƒN
     _findFormatResult = FALSE
     repeat formatsNum
       EnumClipboardFormats 0
@@ -122,31 +122,31 @@
       CloseClipboard
       return
     }
-    // ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰å†…ãƒ†ã‚­ã‚¹ãƒˆãŒã‚ã‚‹ã‚°ãƒ­ãƒ¼ãƒãƒ«ãƒ¡ãƒ¢ãƒªã®ãƒãƒ³ãƒ‰ãƒ«å–å¾—
+    // ƒNƒŠƒbƒvƒ{[ƒh“àƒeƒLƒXƒg‚ª‚ ‚éƒOƒ[ƒoƒ‹ƒƒ‚ƒŠ‚Ìƒnƒ“ƒhƒ‹æ“¾
     GetClipboardData p_distFormat
     if stat = NULL {
       CloseClipboard
       return
     }
     globalMemoryHandler = stat
-    // ã‚°ãƒ­ãƒ¼ãƒãƒ«ãƒ¡ãƒ¢ãƒªã®ã‚µã‚¤ã‚ºå–å¾—
+    // ƒOƒ[ƒoƒ‹ƒƒ‚ƒŠ‚ÌƒTƒCƒYæ“¾
     GlobalSize globalMemoryHandler
     if stat = 0 {
       CloseClipboard
       return
     }
     globalMemLen = stat
-    // ãƒ†ã‚­ã‚¹ãƒˆã‚’å—ã‘å–ã‚Šå¤‰æ•°ã‚’ç”¨æ„ã—ã€ãƒã‚¤ãƒ³ã‚¿å–å¾—
+    // ƒeƒLƒXƒg‚ğó‚¯æ‚è•Ï”‚ğ—pˆÓ‚µAƒ|ƒCƒ“ƒ^æ“¾
     sdim clipboardTextBuffer, globalMemLen + 1
     bufPtr = varptr(clipboardTextBuffer)
-    // ã‚°ãƒ­ãƒ¼ãƒãƒ«ãƒ¡ãƒ¢ãƒªæ–½éŒ ã€ãƒã‚¤ãƒ³ã‚¿å–å¾—
+    // ƒOƒ[ƒoƒ‹ƒƒ‚ƒŠ{ùAƒ|ƒCƒ“ƒ^æ“¾
     GlobalLock globalMemoryHandler
     if stat = NULL {
       CloseClipboard
       return
     }
     globalMemoryPointer = stat
-    // ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰å†…ãƒ†ã‚­ã‚¹ãƒˆå–å¾—
+    // ƒNƒŠƒbƒvƒ{[ƒh“àƒeƒLƒXƒgæ“¾
     lstrcpy bufPtr, globalMemoryPointer
     _lstcpyResult = stat
     GlobalUnlock globalMemoryHandler
