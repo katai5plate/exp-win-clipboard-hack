@@ -13,8 +13,6 @@
   #const FALSE 0
   #const CODE_DONE 0 // 成功コード
   #const CODE_FAILED 1 // 失敗コード
-  // <ここを変えたい> クリップボード内で「テキスト」データ形式を表す番号
-  #const CF_TEXT 1
   #const GHND 66 // グローバルメモリ確保方法
 
   #deffunc _TryOpenClipboard
