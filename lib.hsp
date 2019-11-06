@@ -1,0 +1,171 @@
+// 参考: http://lldev.jp/hsp/module/clipboard_text.html
+
+#runtime "hsp3cl"
+#packopt name "clipboard"
+
+#include "user32.as"
+#include "kernel32.as"
+
+#module
+  #const NULL 0
+  #const FAILED_OPEN_CLIPBOARD 0 // OpenClipboard API 失敗
+  #const FAILED_EMPTY_CLIPBOARD 0 // EmptyClipboard API 失敗
+  #const FAILED_COUNT_CLIPBOARD_FORMATS 0 // CountClipboardFormats API 失敗
+  #const FAILED_ENUM_CLIPBOARD_FORMATS 0 // EnumClipboardFormats API 失敗
+  #const TRUE 1
+  #const FALSE 0
+  #const CODE_DONE 0 // 成功コード
+  #const CODE_FAILED 1 // 失敗コード
+  #const GHND 66 // グローバルメモリ確保方法
+
+  #deffunc _TryOpenClipboard
+    // 1秒間リトライし続ける
+    repeat 100
+      OpenClipboard NULL
+      _toc_result = stat
+      if _toc_result!NULL : break
+      wait 1
+    loop
+    return _toc_result
+
+  // クリップボードにテキストをコピー
+  #deffunc setCB str p_text, int p_format
+    targetText = p_text
+    // グローバルメモリ確保
+    targetTextLength = strlen(targetText)
+    if targetTextLength <= 0 {
+      return CODE_FAILED
+    }
+    GlobalAlloc GHND, targetTextLength + 1
+    if stat = NULL {
+      return CODE_FAILED
+    }
+    globalMemoryHandler = stat
+    // コピー元のポインタ取得
+    targetTextPointer = varptr(targetText)
+    // グローバルメモリ施錠、ポインタ取得
+    GlobalLock globalMemoryHandler
+    if stat = NULL {
+      // グローバルメモリ開放
+      GlobalFree globalMemoryHandler
+      return CODE_FAILED
+    }
+    globalMemoryPointer = stat
+    // コピーしたいテキストをグローバルメモリにコピー
+    lstrcpy globalMemoryPointer, targetTextPointer
+    if stat = NULL {
+      // グローバルメモリ解錠
+      GlobalUnlock globalMemoryHandler
+      GlobalFree globalMemoryHandler
+      return CODE_FAILED
+    }
+    // グローバルメモリ解錠
+    GlobalUnlock globalMemoryHandler
+
+    // クリップボードをオープン
+    _TryOpenClipboard
+    if stat = FAILED_OPEN_CLIPBOARD {
+      GlobalFree globalMemoryHandler
+      return CODE_FAILED
+    }
+    // クリップボードを掌握
+    EmptyClipboard
+    if stat = FAILED_EMPTY_CLIPBOARD {
+      GlobalFree globalMemoryHandler
+      CloseClipboard
+      return CODE_FAILED
+    }
+    // クリップボードにコピー
+    SetClipboardData p_format, globalMemoryHandler
+    if stat = NULL {
+      GlobalFree globalMemoryHandler
+      CloseClipboard
+      return CODE_FAILED
+    }
+    
+    // NOTE: SetClipboardData が成功した場合は GlobalFree 禁止
+    
+    // クリップボードをクローズ
+    CloseClipboard
+    return CODE_DONE // 完了コード
+
+  // クリップボード内のテキストを取得
+  #defcfunc getCB array p_formats, int p_distFormat
+    // クリップボードをオープン
+    _TryOpenClipboard
+    if stat = FAILED_OPEN_CLIPBOARD {
+      return
+    }
+    // クリップボード内データ形式の数を取得
+    CountClipboardFormats
+    if stat = FAILED_COUNT_CLIPBOARD_FORMATS {
+      CloseClipboard
+      return
+    }
+    formatsNum = stat
+    // クリップボードに指定されたフォーマットがあるかチェック
+    _findFormatResult = FALSE
+    repeat formatsNum
+      EnumClipboardFormats 0
+      ecf = stat
+      foreach p_formats
+        if ecf = p_formats.cnt {
+          _findFormatResult = TRUE
+          break
+      }
+      loop
+      if _findFormatResult = TRUE {
+        break
+      }
+      if stat = FAILED_ENUM_CLIPBOARD_FORMATS {
+        continue
+      }
+    loop
+    if _findFormatResult = FALSE {
+      CloseClipboard
+      return
+    }
+    // クリップボード内テキストがあるグローバルメモリのハンドル取得
+    GetClipboardData p_distFormat
+    if stat = NULL {
+      CloseClipboard
+      return
+    }
+    globalMemoryHandler = stat
+    // グローバルメモリのサイズ取得
+    GlobalSize globalMemoryHandler
+    if stat = 0 {
+      CloseClipboard
+      return
+    }
+    globalMemLen = stat
+    // テキストを受け取り変数を用意し、ポインタ取得
+    sdim clipboardTextBuffer, globalMemLen + 1
+    bufPtr = varptr(clipboardTextBuffer)
+    // グローバルメモリ施錠、ポインタ取得
+    GlobalLock globalMemoryHandler
+    if stat = NULL {
+      CloseClipboard
+      return
+    }
+    globalMemoryPointer = stat
+    // クリップボード内テキスト取得
+    lstrcpy bufPtr, globalMemoryPointer
+    _lstcpyResult = stat
+    GlobalUnlock globalMemoryHandler
+    CloseClipboard
+    if _lstcpyResult = NULL {
+      return
+    }
+    return clipboardTextBuffer
+#global
+
+/**********************************************************/
+
+/*
+
+format = 1,7,13
+mes getCB(format, 1)
+setCB "done", 1
+
+*/
